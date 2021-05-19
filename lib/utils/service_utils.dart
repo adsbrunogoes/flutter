@@ -5,7 +5,7 @@ final String serviceTable = "serviceTable";
 final String idColumn = "idColumn";
 final String titleColumn = "titleColumn";
 final String checkColumn = "checkColumn";
-final String idContactColumn = "idContact";
+final String idContactColumn = "idContactColumn";
 
 class ServicesUtils {
   static final ServicesUtils _instance = ServicesUtils.internal();
@@ -34,7 +34,8 @@ class ServicesUtils {
       await db.execute("CREATE TABLE $serviceTable("
           "$idColumn INTEGER PRIMARY KEY,"
           "$titleColumn TEXT,"
-          "$checkColumn INTEGER"
+          "$checkColumn INTEGER,"
+          "$idContactColumn INTEGER"
           ")");
     });
   }
@@ -48,7 +49,7 @@ class ServicesUtils {
   Future<Service> getService(int id) async {
     Database dbService = await db;
     List<Map> maps = await dbService.query(serviceTable,
-        columns: [idColumn, titleColumn, checkColumn],
+        columns: [idColumn, titleColumn, checkColumn, idContactColumn],
         where: "$id = ?",
         whereArgs: [id]);
     if (maps.length > 0) {
@@ -73,7 +74,7 @@ class ServicesUtils {
   Future<List> getAllServices(int idContact) async {
     Database dbService = await db;
     List<Map> maps = await dbService.query(serviceTable,
-        columns: [idColumn, titleColumn, checkColumn],
+        columns: [idColumn, titleColumn, checkColumn, idContactColumn],
         where: "$idContactColumn = ?",
         whereArgs: [idContact]);
     List<Service> listservice = List();
@@ -107,7 +108,7 @@ class Service {
     id = map[idColumn];
     title = map[titleColumn];
     check = map[checkColumn];
-    idContact = map[idContact];
+    idContact = map[idContactColumn];
   }
 
   Map toMap() {
