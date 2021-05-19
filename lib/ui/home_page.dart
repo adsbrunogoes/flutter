@@ -20,7 +20,7 @@ class _HomePageState extends State<HomePage> {
   ServicesUtils serviceUtils = ServicesUtils();
   List<Service> services = List();
 
-   @override
+  @override
   void initState() {
     _getAllContacts();
   }
@@ -53,47 +53,48 @@ class _HomePageState extends State<HomePage> {
   Widget _contactCard(BuildContext context, int index) {
     return GestureDetector(
       child: Card(
-        child: Padding(
-            padding: EdgeInsets.all(10.0),
-            child: Row(
-              children: <Widget>[
-                Container(
-                  width: 80,
-                  height: 80,
-                  decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      image: DecorationImage(
-                          image: contacts[index].img != null
-                              ? FileImage(File(contacts[index].img))
-                              : AssetImage("images/car.png"),
-                          fit: BoxFit.cover)),
-                ),
-                Padding(
-                    padding: EdgeInsets.only(left: 10),
-                    child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: <Widget>[
+          child: Padding(
+        padding: EdgeInsets.all(10.0),
+        child: Row(
+          children: <Widget>[
+            Container(
+              width: 80,
+              height: 80,
+              decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  image: DecorationImage(
+                      image: contacts[index].img != null
+                          ? FileImage(File(contacts[index].img))
+                          : AssetImage("images/car.png"),
+                      fit: BoxFit.cover)),
+            ),
+            Padding(
+                padding: EdgeInsets.only(left: 10),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
                     Text(contacts[index].name ?? "",
                         style: TextStyle(
                             fontSize: 22, fontWeight: FontWeight.bold)),
                     Text(contacts[index].phone ?? "",
                         style: TextStyle(fontSize: 18)),
-                    Text((contacts[index].model ?? "") + " - " + (contacts[index].year ?? "") ,
-                        style: TextStyle(fontSize: 18),
-
-                ),
-
-              ],
-            )),
-        ],
-      ),
-    )),
-    onTap: () {
-    _showServicePage();
-    },
-    onLongPress: () {
-    _showOptions(context, index);
-    },
+                    Text(
+                      (contacts[index].model ?? "") +
+                          " - " +
+                          (contacts[index].year ?? ""),
+                      style: TextStyle(fontSize: 18),
+                    ),
+                  ],
+                )),
+          ],
+        ),
+      )),
+      onTap: () {
+        _showServicePage(index);
+      },
+      onLongPress: () {
+        _showOptions(context, index);
+      },
     );
   }
 
@@ -112,7 +113,7 @@ class _HomePageState extends State<HomePage> {
                         FlatButton(
                           child: Text("Ligar",
                               style:
-                              TextStyle(color: Colors.black, fontSize: 20)),
+                                  TextStyle(color: Colors.black, fontSize: 20)),
                           onPressed: () {
                             launch("tel:${contacts[index].phone}");
                             Navigator.pop(context);
@@ -121,7 +122,7 @@ class _HomePageState extends State<HomePage> {
                         FlatButton(
                           child: Text("Editar",
                               style:
-                              TextStyle(color: Colors.black, fontSize: 20)),
+                                  TextStyle(color: Colors.black, fontSize: 20)),
                           onPressed: () {
                             Navigator.pop(context);
                             _showContactPage(contact: contacts[index]);
@@ -130,7 +131,7 @@ class _HomePageState extends State<HomePage> {
                         FlatButton(
                           child: Text("Excluir",
                               style:
-                              TextStyle(color: Colors.black, fontSize: 20)),
+                                  TextStyle(color: Colors.black, fontSize: 20)),
                           onPressed: () {
                             _requestDel(index);
                           },
@@ -145,8 +146,7 @@ class _HomePageState extends State<HomePage> {
     final recContact = await Navigator.push(
         context,
         MaterialPageRoute(
-            builder: (context) =>
-                ContactPage(
+            builder: (context) => ContactPage(
                   contact: contact,
                 )));
     if (recContact != null) {
@@ -160,14 +160,13 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  void _showServicePage() async {
+  void _showServicePage(int index) async {
     await Navigator.push(
         context,
         MaterialPageRoute(
-            builder: (context) =>
-                ServicePage()
-        )
-    );
+            builder: (context) => ServicePage(
+                  idContact: contacts[index].id,
+                )));
   }
 
   void _getAllContacts() {

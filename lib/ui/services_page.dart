@@ -1,4 +1,3 @@
-import 'package:auto_mecanica/utils/contact_utils.dart';
 import 'package:auto_mecanica/utils/service_utils.dart';
 import 'package:flutter/material.dart';
 import 'dart:async';
@@ -10,8 +9,9 @@ class ServicePage extends StatefulWidget {
   //const ServicePage({Key key}) : super(key: key);
 
   final Service service;
+  final int idContact;
 
-  ServicePage({this.service});
+  ServicePage({this.service, this.idContact});
 
   @override
   _ServicePageState createState() => _ServicePageState();
@@ -19,6 +19,8 @@ class ServicePage extends StatefulWidget {
 
 class _ServicePageState extends State<ServicePage> {
   final _toDoController = TextEditingController();
+  ServicesUtils utils = ServicesUtils();
+  Service service;
 
   List _toDoList = [];
 
@@ -29,33 +31,31 @@ class _ServicePageState extends State<ServicePage> {
   void initState() {
     super.initState();
 
-    _readData().then((data) {
-      setState(() {
-        _toDoList = json.decode(data);
-      });
+    setState(() {
+      _getAllServices();
     });
   }
 
   void _addToDo() {
-    setState(() {
-      Map<String, dynamic> newToDo = Map();
-      newToDo["title"] = _toDoController.text;
-      _toDoController.text = "";
-      newToDo["ok"] = false;
-      _toDoList.add(newToDo);
-
-      _saveData();
-    });
+    service = Service();
+    service.title = _toDoController.text;
+    service.check = 0;
+    service.idContact = widget.idContact;
+    utils.saveService(service);
+    _getAllServices();
   }
 
-  Future<Null> _refresh() async{
+  Future<Null> _refresh() async {
     await Future.delayed(Duration(seconds: 1));
 
     setState(() {
-      _toDoList.sort((a, b){
-        if(a["ok"] && !b["ok"]) return 1;
-        else if(!a["ok"] && b["ok"]) return -1;
-        else return 0;
+      _toDoList.sort((a, b) {
+        if (a["ok"] && !b["ok"])
+          return 1;
+        else if (!a["ok"] && b["ok"])
+          return -1;
+        else
+          return 0;
       });
 
       _saveData();
@@ -80,13 +80,11 @@ class _ServicePageState extends State<ServicePage> {
               children: <Widget>[
                 Expanded(
                     child: TextField(
-                      controller: _toDoController,
-                      decoration: InputDecoration(
-                          labelText: "Nova Tarefa",
-                          labelStyle: TextStyle(color: Colors.blue[900])
-                      ),
-                    )
-                ),
+                  controller: _toDoController,
+                  decoration: InputDecoration(
+                      labelText: "Nova Tarefa",
+                      labelStyle: TextStyle(color: Colors.blue[900])),
+                )),
                 RaisedButton(
                   color: Colors.blue[900],
                   child: Text("ADD"),
@@ -97,7 +95,8 @@ class _ServicePageState extends State<ServicePage> {
             ),
           ),
           Expanded(
-            child: RefreshIndicator(onRefresh: _refresh,
+            child: RefreshIndicator(
+              onRefresh: _refresh,
               child: ListView.builder(
                   padding: EdgeInsets.only(top: 10.0),
                   itemCount: _toDoList.length,
@@ -109,54 +108,38 @@ class _ServicePageState extends State<ServicePage> {
     );
   }
 
-  Widget buildItem(BuildContext context, int index){
+  Widget buildItem(BuildContext context, int index) {
     return Dismissible(
       key: Key(DateTime.now().millisecondsSinceEpoch.toString()),
       background: Container(
         color: Colors.red,
         child: Align(
           alignment: Alignment(-0.9, 0.0),
-          child: Icon(Icons.delete, color: Colors.white,),
+          child: Icon(
+            Icons.delete,
+            color: Colors.white,
+          ),
         ),
       ),
       direction: DismissDirection.startToEnd,
       child: CheckboxListTile(
-        title: Text(_toDoList[index]["title"]),
-        value: _toDoList[index]["ok"],
+        title: Text(_toDoList[index].title),
+        value: _toDoList[index].check == 1,
         secondary: CircleAvatar(
-          child: Icon(_toDoList[index]["ok"] ?
-          Icons.check : Icons.error),),
-        onChanged: (c){
+          child: Icon(_toDoList[index].check == 1 ? Icons.check : Icons.error),
+        ),
+        onChanged: (c) {
           setState(() {
-            _toDoList[index]["ok"] = c;
-            _saveData();
+            _toDoList[index].check = c ? 1 : 0;
+            utils.updateService(_toDoList[index]);
           });
         },
       ),
-      onDismissed: (direction){
+      onDismissed: (direction) {
         setState(() {
-          _lastRemoved = Map.from(_toDoList[index]);
-          _lastRemovedPos = index;
-          _toDoList.removeAt(index);
-
-          _saveData();
-
-          final snack = SnackBar(
-            content: Text("Tarefa \"${_lastRemoved["title"]}\" removida!"),
-            action: SnackBarAction(label: "Desfazer",
-                onPressed: () {
-                  setState(() {
-                    _toDoList.insert(_lastRemovedPos, _lastRemoved);
-                    _saveData();
-                  });
-                }),
-            duration: Duration(seconds: 2),
-          );
-
-          Scaffold.of(context).removeCurrentSnackBar();
-          Scaffold.of(context).showSnackBar(snack);
-
+          utils.deleteService(_toDoList[index].id);
         });
+        _getAllServices();
       },
     );
   }
@@ -183,5 +166,12 @@ class _ServicePageState extends State<ServicePage> {
     }
   }
 
+  void _getAllServices() {
+    //super.initState();
+    utils.getAllServices(widget.idContact).then((list) {
+      setState(() {
+        _toDoList = list;
+      });
+    });
+  }
 }
-

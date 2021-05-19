@@ -5,6 +5,7 @@ final String serviceTable = "serviceTable";
 final String idColumn = "idColumn";
 final String titleColumn = "titleColumn";
 final String checkColumn = "checkColumn";
+final String idContactColumn = "idContactColumn";
 
 class ServicesUtils {
   static final ServicesUtils _instance = ServicesUtils.internal();
@@ -33,7 +34,8 @@ class ServicesUtils {
       await db.execute("CREATE TABLE $serviceTable("
           "$idColumn INTEGER PRIMARY KEY,"
           "$titleColumn TEXT,"
-          "$checkColumn INTEGER"
+          "$checkColumn INTEGER,"
+          "$idContactColumn INTEGER"
           ")");
     });
   }
@@ -47,7 +49,7 @@ class ServicesUtils {
   Future<Service> getService(int id) async {
     Database dbService = await db;
     List<Map> maps = await dbService.query(serviceTable,
-        columns: [idColumn, titleColumn, checkColumn],
+        columns: [idColumn, titleColumn, checkColumn, idContactColumn],
         where: "$id = ?",
         whereArgs: [id]);
     if (maps.length > 0) {
@@ -69,11 +71,14 @@ class ServicesUtils {
         where: "$idColumn = ?", whereArgs: [service.id]);
   }
 
-  Future<List> getAllServices() async {
+  Future<List> getAllServices(int idContact) async {
     Database dbService = await db;
-    List listMap = await dbService.rawQuery("SELECT * FROM $serviceTable");
+    List<Map> maps = await dbService.query(serviceTable,
+        columns: [idColumn, titleColumn, checkColumn, idContactColumn],
+        where: "$idContactColumn = ?",
+        whereArgs: [idContact]);
     List<Service> listservice = List();
-    for (Map m in listMap) {
+    for (Map m in maps) {
       listservice.add(Service.fromMap(m));
     }
     return listservice;
@@ -95,6 +100,7 @@ class Service {
   int id;
   String title;
   int check;
+  int idContact;
 
   Service();
 
@@ -102,12 +108,14 @@ class Service {
     id = map[idColumn];
     title = map[titleColumn];
     check = map[checkColumn];
+    idContact = map[idContactColumn];
   }
 
   Map toMap() {
     Map<String, dynamic> map = {
       titleColumn: title,
       checkColumn: check,
+      idContactColumn: idContact,
     };
     if (id != null) {
       map[idColumn] = id;
@@ -120,4 +128,3 @@ class Service {
     return "service(id: $id, title: $title, check: $check)";
   }
 }
-
